@@ -197,7 +197,60 @@ elif menu == "🗝️ Nhận / Trả phòng":
     
     df_rooms = st.session_state["rooms"]
     df_bookings = st.session_state["bookings"]
-
+# --- CHECK-IN ---
+    with tab_checkin:
+        st.subheader("Nhận phòng mới")
+        available_rooms_df = df_rooms[(df_rooms["status"] == "Trống") & (df_rooms["housekeeping"] == "Sạch")]
+        
+        if available_rooms_df.empty:
+            st.warning("⚠️ Không có phòng trống sẵn sàng. Lễ tân cần kiểm tra lại sơ đồ phòng hoặc lịch vệ sinh.")
+        else:
+            with st.form("checkin_form"):
+                col1, col2 = st.columns(2)
+                with col1:
+                    room_selected = st.selectbox("Chọn Phòng Trống:", available_rooms_df["room_no"].tolist())
+                    guest_name = st.text_input("Tên Khách Hàng:")
+                    phone = st.text_input("Số Điện Thoại:")
+                    
+                    # --- CHÈN Ô TẢI ẢNH GIẤY TỜ / CCCD ---
+                    uploaded_img = st.file_uploader("Tải ảnh CCCD / Giấy tờ:", type=["jpg", "jpeg", "png"])
+                    
+                with col2:
+                    checkin_date = st.date_input("Ngày Check-in:", date.today())
+                    checkout_date = st.date_input("Ngày Check-out Dự kiến:", date.today())
+                    deposit = st.number_input("Tiền Cọc (VNĐ):", min_value=0, step=100000, value=200000)
+                    
+                btn_checkin = st.form_submit_button("✅ Xác Nhận Check-In")
+                
+                if btn_checkin:
+                    if not guest_name or not phone:
+                        st.error("Vui lòng điền tên và số điện thoại khách hàng.")
+                    elif checkout_date <= checkin_date:
+                        st.error("Ngày trả phòng phải sau ngày nhận phòng.")
+                    else:
+                        nights = (checkout_date - checkin_date).days
+                        room_price = df_rooms[df_rooms["room_no"] == room_selected]["price"].values[0]
+                        total_price = nights * room_price
+                        
+                        new_booking = {
+                            "id": f"BK-{len(df_bookings) + 1001}",
+                            "room_no": room_selected,
+                            "guest_name": guest_name,
+                            "phone": phone,
+                            "checkin": checkin_date,
+                            "checkout": checkout_date,
+                            "service_fee": 0,
+                            "deposit": deposit,
+                            "total": total_price,
+                            "status": "Đang ở"
+                        }
+                        
+                        st.session_state["bookings"] = pd.concat([df_bookings, pd.DataFrame([new_booking])], ignore_index=True)
+                        st.session_state["rooms"].loc[st.session_state["rooms"]["room_no"] == room_selected, "status"] = "Đang có khách"
+                        st.session_state["rooms"].loc[st.session_state["rooms"]["room_no"] == room_selected, "housekeeping"] = "Đang ở"
+                        
+                        st.success(f"Khách {guest_name} nhận phòng {room_selected} thành công!")
+                        st.rerun()
     # --- CHECK-OUT ---
     with st.form("checkin_form"):
         col1, col2 = st.columns(2)
