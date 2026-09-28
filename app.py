@@ -6,16 +6,12 @@ from PIL import Image, ImageTk
 class HotelManagementApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Hệ Thống Quản Lý Khách Sạn Pro")
-        self.root.geometry("1150x750")
-        self.root.configure(bg="#F5F6FA")
+        self.root.title("Hệ Thống Quản Lý Khách Sạn")
+        self.root.geometry("1100x700")
 
-        # Tên file ảnh bìa của bạn
-        self.cover_filename = "VT.jpg"
-        
-        # Tải ảnh bìa trang chủ và ảnh phòng
-        self.cover_photo = self.load_and_resize_image(self.cover_filename, size=(1110, 180))
-        self.room_photo = self.load_and_resize_image(self.cover_filename, size=(260, 150))
+        # Tên file ảnh của bạn
+        self.image_filename = "VT.jpg"
+        self.room_photo = self.load_room_image(self.image_filename, size=(250, 160))
 
         # Khởi tạo dữ liệu danh sách phòng
         self.rooms = {
@@ -29,58 +25,47 @@ class HotelManagementApp:
 
         self.setup_ui()
 
-    def load_and_resize_image(self, image_path, size):
-        """Tải và resize hình ảnh theo kích thước mong muốn"""
+    def load_room_image(self, image_path, size=(250, 160)):
+        """Tải và xử lý kích thước hình ảnh"""
         if os.path.exists(image_path):
             try:
                 img = Image.open(image_path)
                 img = img.resize(size, Image.Resampling.LANCZOS)
                 return ImageTk.PhotoImage(img)
             except Exception as e:
-                print(f"Lỗi khi xử lý ảnh: {e}")
+                print(f"Lỗi khi tải ảnh: {e}")
                 return None
         else:
-            print(f"Cảnh báo: Không tìm thấy file '{image_path}' trong thư mục chạy code.")
+            print(f"Cảnh báo: Không tìm thấy file ảnh '{image_path}' trong cùng thư mục.")
             return None
 
     def setup_ui(self):
-        # Header Tiêu đề
-        header_frame = tk.Frame(self.root, bg="#2C3E50", height=50)
+        # Tiêu đề chính
+        header_frame = tk.Frame(self.root, bg="#2C3E50", height=60)
         header_frame.pack(fill=tk.X)
-        header_label = tk.Label(header_frame, text="🏨 HỆ THỐNG QUẢN LÝ KHÁCH SẠN PRO", font=("Arial", 16, "bold"), fg="white", bg="#2C3E50")
-        header_label.pack(pady=10)
+        header_label = tk.Label(header_frame, text="QUẢN LÝ PHÒNG KHÁCH SẠN", font=("Arial", 18, "bold"), fg="white", bg="#2C3E50")
+        header_label.pack(pady=15)
 
-        # 🏞️ KHUNG BÌA TRANG CHỦ (Hiển thị VT.jpg dạng Banner lớn)
-        banner_frame = tk.Frame(self.root, bg="#F5F6FA")
-        banner_frame.pack(fill=tk.X, padx=15, pady=(10, 5))
-
-        if self.cover_photo:
-            banner_label = tk.Label(banner_frame, image=self.cover_photo, bg="#F5F6FA")
-            banner_label.pack(fill=tk.X)
-        else:
-            banner_label = tk.Label(banner_frame, text="[ KHÔNG TÌM THẤY ẢNH BÌA VT.JPG ]", font=("Arial", 12, "bold"), bg="#BDC3C7", height=4)
-            banner_label.pack(fill=tk.X)
-
-        # Tab giao diện chức năng
+        # Tab giao diện
         notebook = ttk.Notebook(self.root)
-        notebook.pack(fill=tk.BOTH, expand=True, padx=15, pady=10)
+        notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         # Tab 1: Sơ đồ phòng
         tab_map = ttk.Frame(notebook)
-        notebook.add(tab_map, text=" 🗺️ Sơ Đồ Phòng ")
+        notebook.add(tab_map, text=" Sơ Đồ Phòng ")
         self.setup_room_map_tab(tab_map)
 
         # Tab 2: Nhận/Trả phòng
         tab_checkin = ttk.Frame(notebook)
-        notebook.add(tab_checkin, text=" 🔑 Check-in / Check-out ")
+        notebook.add(tab_checkin, text=" Quản Lý Check-in / Check-out ")
         self.setup_checkin_tab(tab_checkin)
 
     def setup_room_map_tab(self, parent):
         main_frame = tk.Frame(parent)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        # Khung danh sách phòng (Bên trái)
-        rooms_frame = tk.LabelFrame(main_frame, text="Danh Sách Phòng Khách Sạn", font=("Arial", 11, "bold"), padx=10, pady=10)
+        # Khung hiển thị danh sách phòng bên trái
+        rooms_frame = tk.LabelFrame(main_frame, text="Danh Sách Phòng", font=("Arial", 12, "bold"), padx=10, pady=10)
         rooms_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         self.room_buttons = {}
@@ -89,10 +74,10 @@ class HotelManagementApp:
             btn_color = "#2ECC71" if info["status"] == "Trống" else "#E74C3C"
             btn_text = f"Phòng {room_id}\n({info['type']})\n{info['status']}"
 
-            btn = tk.Button(rooms_frame, text=btn_text, font=("Arial", 10, "bold"),
-                            bg=btn_color, fg="white", width=15, height=3,
+            btn = tk.Button(rooms_frame, text=btn_text, font=("Arial", 11, "bold"),
+                            bg=btn_color, fg="white", width=16, height=4,
                             command=lambda r=room_id: self.show_room_details(r))
-            btn.grid(row=row, column=col, padx=8, pady=8)
+            btn.grid(row=row, column=col, padx=10, pady=10)
 
             self.room_buttons[room_id] = btn
 
@@ -101,32 +86,32 @@ class HotelManagementApp:
                 col = 0
                 row += 1
 
-        # Khung chi tiết phòng (Bên phải)
-        details_frame = tk.LabelFrame(main_frame, text="Thông Tin Chi Tiết", font=("Arial", 11, "bold"), padx=15, pady=10)
+        # Khung thông tin chi tiết phòng bên phải (có hiển thị ảnh VT.jpg)
+        details_frame = tk.LabelFrame(main_frame, text="Thông Tin Chi Tiết", font=("Arial", 12, "bold"), padx=15, pady=15)
         details_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=(10, 0))
 
-        # Hiển thị ảnh phòng VT.jpg
-        self.lbl_image = tk.Label(details_frame, text="[Ảnh Phòng]", bg="#BDC3C7", width=30, height=8)
-        self.lbl_image.pack(pady=(0, 10))
+        # Nơi hiển thị hình ảnh phòng VT.jpg
+        self.lbl_image = tk.Label(details_frame, text="[Ảnh Phòng]", bg="#BDC3C7", width=30, height=10)
+        self.lbl_image.pack(pady=(0, 15))
         if self.room_photo:
-            self.lbl_image.config(image=self.room_photo, text="", width=260, height=150)
+            self.lbl_image.config(image=self.room_photo, text="", width=250, height=160)
 
-        self.lbl_detail_room = tk.Label(details_frame, text="Chọn phòng để xem", font=("Arial", 11, "bold"))
-        self.lbl_detail_room.pack(anchor="w", pady=3)
+        self.lbl_detail_room = tk.Label(details_frame, text="Chọn phòng để xem chi tiết", font=("Arial", 12, "bold"))
+        self.lbl_detail_room.pack(anchor="w", pady=5)
 
-        self.lbl_detail_type = tk.Label(details_frame, text="Loại phòng: -", font=("Arial", 10))
+        self.lbl_detail_type = tk.Label(details_frame, text="Loại phòng: -", font=("Arial", 11))
         self.lbl_detail_type.pack(anchor="w", pady=2)
 
-        self.lbl_detail_price = tk.Label(details_frame, text="Giá: -", font=("Arial", 10))
+        self.lbl_detail_price = tk.Label(details_frame, text="Giá: -", font=("Arial", 11))
         self.lbl_detail_price.pack(anchor="w", pady=2)
 
-        self.lbl_detail_status = tk.Label(details_frame, text="Trạng thái: -", font=("Arial", 10))
+        self.lbl_detail_status = tk.Label(details_frame, text="Trạng thái: -", font=("Arial", 11))
         self.lbl_detail_status.pack(anchor="w", pady=2)
 
-        self.lbl_detail_guest = tk.Label(details_frame, text="Khách hàng: -", font=("Arial", 10))
+        self.lbl_detail_guest = tk.Label(details_frame, text="Khách hàng: -", font=("Arial", 11))
         self.lbl_detail_guest.pack(anchor="w", pady=2)
 
-        self.lbl_detail_phone = tk.Label(details_frame, text="Số điện thoại: -", font=("Arial", 10))
+        self.lbl_detail_phone = tk.Label(details_frame, text="Số điện thoại: -", font=("Arial", 11))
         self.lbl_detail_phone.pack(anchor="w", pady=2)
 
     def show_room_details(self, room_id):
@@ -139,37 +124,37 @@ class HotelManagementApp:
         self.lbl_detail_phone.config(text=f"Số điện thoại: {info['phone'] if info['phone'] else 'N/A'}")
 
     def setup_checkin_tab(self, parent):
-        frame = tk.Frame(parent, padx=15, pady=15)
+        frame = tk.Frame(parent, padx=20, pady=20)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        # Form thao tác check-in/out
-        form_frame = tk.LabelFrame(frame, text="Thao Tác Đặt Phòng", font=("Arial", 11, "bold"), padx=15, pady=15)
+        # Cột trái: Form nhập thông tin
+        form_frame = tk.LabelFrame(frame, text="Thao Tác", font=("Arial", 12, "bold"), padx=15, pady=15)
         form_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
 
-        tk.Label(form_frame, text="Chọn Phòng:", font=("Arial", 10)).grid(row=0, column=0, sticky="w", pady=5)
-        self.cb_rooms = ttk.Combobox(form_frame, values=list(self.rooms.keys()), font=("Arial", 10), state="readonly")
+        tk.Label(form_frame, text="Chọn Phòng:", font=("Arial", 11)).grid(row=0, column=0, sticky="w", pady=5)
+        self.cb_rooms = ttk.Combobox(form_frame, values=list(self.rooms.keys()), font=("Arial", 11), state="readonly")
         self.cb_rooms.grid(row=0, column=1, sticky="ew", pady=5)
         if self.rooms:
             self.cb_rooms.current(0)
 
-        tk.Label(form_frame, text="Tên Khách Hàng:", font=("Arial", 10)).grid(row=1, column=0, sticky="w", pady=5)
-        self.entry_guest = tk.Entry(form_frame, font=("Arial", 10))
+        tk.Label(form_frame, text="Tên Khách Hàng:", font=("Arial", 11)).grid(row=1, column=0, sticky="w", pady=5)
+        self.entry_guest = tk.Entry(form_frame, font=("Arial", 11))
         self.entry_guest.grid(row=1, column=1, sticky="ew", pady=5)
 
-        tk.Label(form_frame, text="Số Điện Thoại:", font=("Arial", 10)).grid(row=2, column=0, sticky="w", pady=5)
-        self.entry_phone = tk.Entry(form_frame, font=("Arial", 10))
+        tk.Label(form_frame, text="Số Điện Thoại:", font=("Arial", 11)).grid(row=2, column=0, sticky="w", pady=5)
+        self.entry_phone = tk.Entry(form_frame, font=("Arial", 11))
         self.entry_phone.grid(row=2, column=1, sticky="ew", pady=5)
 
-        btn_checkin = tk.Button(form_frame, text="Check-in (Nhận Phòng)", bg="#2ECC71", fg="white", font=("Arial", 10, "bold"), command=self.handle_checkin)
+        btn_checkin = tk.Button(form_frame, text="Check-in (Nhận Phòng)", bg="#2ECC71", fg="white", font=("Arial", 11, "bold"), command=self.handle_checkin)
         btn_checkin.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(15, 5))
 
-        btn_checkout = tk.Button(form_frame, text="Check-out (Trả Phòng)", bg="#E74C3C", fg="white", font=("Arial", 10, "bold"), command=self.handle_checkout)
+        btn_checkout = tk.Button(form_frame, text="Check-out (Trả Phòng)", bg="#E74C3C", fg="white", font=("Arial", 11, "bold"), command=self.handle_checkout)
         btn_checkout.grid(row=4, column=0, columnspan=2, sticky="ew", pady=5)
 
         form_frame.columnconfigure(1, weight=1)
 
-        # Xem trước ảnh đại diện
-        img_preview_frame = tk.LabelFrame(frame, text="Hình Ảnh Phòng", font=("Arial", 11, "bold"), padx=15, pady=15)
+        # Cột phải: Xem ảnh đại diện mẫu VT.jpg
+        img_preview_frame = tk.LabelFrame(frame, text="Hình Ảnh Phòng (VT.jpg)", font=("Arial", 12, "bold"), padx=15, pady=15)
         img_preview_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         lbl_tab2_img = tk.Label(img_preview_frame, text="[Ảnh VT.jpg]", bg="#BDC3C7")
@@ -199,9 +184,11 @@ class HotelManagementApp:
         self.rooms[room_id]["phone"] = phone
         self.rooms[room_id]["checkin"] = "2026-09-28 10:00"
 
+        # Cập nhật giao diện sơ đồ phòng
         self.room_buttons[room_id].config(bg="#E74C3C", text=f"Phòng {room_id}\n({self.rooms[room_id]['type']})\nĐang ở")
         self.show_room_details(room_id)
 
+        # Xóa form nhập
         self.entry_guest.delete(0, tk.END)
         self.entry_phone.delete(0, tk.END)
 
@@ -224,6 +211,7 @@ class HotelManagementApp:
         self.rooms[room_id]["phone"] = ""
         self.rooms[room_id]["checkin"] = ""
 
+        # Cập nhật giao diện sơ đồ phòng
         self.room_buttons[room_id].config(bg="#2ECC71", text=f"Phòng {room_id}\n({self.rooms[room_id]['type']})\nTrống")
         self.show_room_details(room_id)
 
@@ -233,10 +221,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = HotelManagementApp(root)
     root.mainloop()
-```
-
-eof
-
-### Thay đổi chính:
-* **Banner bìa trang chủ:** Cài đặt một khung ảnh banner lớn kích thước $1110 \times 180$ px phía trên các tab chức năng sử dụng file ảnh `VT.jpg`.
-* **Ảnh đại diện phòng:** Giữ nguyên khung ảnh minh họa loại phòng nhỏ hơn ($260 \times 150$ px) ở bảng chi tiết bên phải.
