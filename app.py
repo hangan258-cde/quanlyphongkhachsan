@@ -70,6 +70,13 @@ if "revenue_history" not in st.session_state:
 # ==========================================
 # 2. THANH THIẾT LẬP SIDEBAR & MENU
 # ==========================================
+# Chèn Logo khách sạn ở Sidebar
+st.sidebar.image(
+    "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500", 
+    caption="Hotline: 1900 1234", 
+    use_container_width=True
+)
+
 st.sidebar.title("🏨 KHÁCH SẠN PRO")
 st.sidebar.caption("Hệ thống Quản lý Vận hành")
 
