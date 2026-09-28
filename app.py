@@ -250,6 +250,17 @@ elif menu == "🗝️ Nhận / Trả phòng":
                         st.rerun()
 
     # --- CHECK-OUT ---
+    with st.form("checkin_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            room_selected = st.selectbox("Chọn Phòng Trống:", available_rooms_df["room_no"].tolist())
+            guest_name = st.text_input("Tên Khách Hàng:")
+            phone = st.text_input("Số Điện Thoại:")
+            
+            # --- CHÈN CÂU LỆNH TẢI ẢNH CCCD/XÁC NHẬN ---
+            uploaded_img = st.file_uploader("Tải ảnh CCCD / Giấy tờ:", type=["jpg", "jpeg", "png"])
+            if uploaded_img:
+                st.image(uploaded_img, caption="Ảnh đã tải lên", width=150)
     with tab_checkout:
         st.subheader("Thanh toán & Trả phòng")
         active_bookings = df_bookings[df_bookings["status"] == "Đang ở"]
