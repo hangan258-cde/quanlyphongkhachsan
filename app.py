@@ -14,8 +14,8 @@ st.set_page_config(
 
 # Danh sách phòng mặc định
 DEFAULT_ROOMS = [
-    {"room_no": "101", "floor": "Tầng 1", "type": "Standard", "price": 500000, "status": "Trống", "housekeeping": "Sạch"},
-    {"room_no": "102", "floor": "Tầng 1", "type": "Standard", "price": 500000, "status": "Đang có khách", "housekeeping": "Đang ở"},
+    {"room_no": "101", "floor": "Tầng 1", "type": "Standard", "price": 750000, "status": "Trống", "housekeeping": "Sạch"},
+    {"room_no": "102", "floor": "Tầng 1", "type": "Standard", "price": 750000, "status": "Đang có khách", "housekeeping": "Đang ở"},
     {"room_no": "103", "floor": "Tầng 1", "type": "Superior", "price": 750000, "status": "Trống", "housekeeping": "Cần dọn"},
     {"room_no": "201", "floor": "Tầng 2", "type": "Superior", "price": 750000, "status": "Trống", "housekeeping": "Sạch"},
     {"room_no": "202", "floor": "Tầng 2", "type": "Deluxe", "price": 1200000, "status": "Đang có khách", "housekeeping": "Đang ở"},
