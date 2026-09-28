@@ -1,357 +1,252 @@
-import streamlit as st
-import pandas as pd
-from datetime import date
+import tkinter as tk
+from tkinter import ttk, messagebox
+import os
+from PIL import Image, ImageTk
 
-# ==========================================
-# 1. CẤU HÌNH TRANG & DỮ LIỆU BAN ĐẦU
-# ==========================================
-st.set_page_config(
-    page_title="Hệ Thống Quản Lý Khách Sạn",
-    page_icon="🏨",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+class HotelManagementApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Hệ Thống Quản Lý Khách Sạn")
+        self.root.geometry("1100x800")
 
-# Danh sách phòng mặc định
-DEFAULT_ROOMS = [
-    {"room_no": "101", "floor": "Tầng 1", "type": "Standard", "price": 750000, "status": "Trống", "housekeeping": "Sạch"},
-    {"room_no": "102", "floor": "Tầng 1", "type": "Standard", "price": 750000, "status": "Đang có khách", "housekeeping": "Đang ở"},
-    {"room_no": "103", "floor": "Tầng 1", "type": "Superior", "price": 750000, "status": "Trống", "housekeeping": "Cần dọn"},
-    {"room_no": "201", "floor": "Tầng 2", "type": "Superior", "price": 750000, "status": "Trống", "housekeeping": "Sạch"},
-    {"room_no": "202", "floor": "Tầng 2", "type": "Deluxe", "price": 1200000, "status": "Đang có khách", "housekeeping": "Đang ở"},
-    {"room_no": "203", "floor": "Tầng 2", "type": "Deluxe", "price": 1200000, "status": "Bảo trì", "housekeeping": "Cần dọn"},
-    {"room_no": "301", "floor": "Tầng 3", "type": "VIP Suite", "price": 2000000, "status": "Trống", "housekeeping": "Sạch"},
-    {"room_no": "302", "floor": "Tầng 3", "type": "VIP Suite", "price": 2000000, "status": "Đã đặt", "housekeeping": "Sạch"},
-]
-
-# Đặt phòng mẫu
-DEFAULT_BOOKINGS = [
-    {
-        "id": "BK-1001",
-        "room_no": "102",
-        "guest_name": "Nguyễn Văn A",
-        "phone": "0901234567",
-        "checkin": date(2026, 9, 27),
-        "checkout": date(2026, 9, 29),
-        "service_fee": 150000,
-        "deposit": 500000,
-        "total": 1150000,
-        "status": "Đang ở"
-    },
-    {
-        "id": "BK-1002",
-        "room_no": "202",
-        "guest_name": "Trần Thị B",
-        "phone": "0987654321",
-        "checkin": date(2026, 9, 26),
-        "checkout": date(2026, 9, 28),
-        "service_fee": 300000,
-        "deposit": 1000000,
-        "total": 2700000,
-        "status": "Đang ở"
-    }
-]
-
-# Lưu trữ Session State
-if "rooms" not in st.session_state:
-    st.session_state["rooms"] = pd.DataFrame(DEFAULT_ROOMS)
-
-if "bookings" not in st.session_state:
-    st.session_state["bookings"] = pd.DataFrame(DEFAULT_BOOKINGS)
-
-if "revenue_history" not in st.session_state:
-    st.session_state["revenue_history"] = pd.DataFrame([
-        {"Ngày": "2026-09-25", "Doanh thu": 3500000},
-        {"Ngày": "2026-09-26", "Doanh thu": 4200000},
-        {"Ngày": "2026-09-27", "Doanh thu": 2800000},
-    ])
-
-
-# ==========================================
-# 2. THANH THIẾT LẬP SIDEBAR & MENU
-# ==========================================
-st.sidebar.title("🏨 KHÁCH SẠN PRO")
-st.sidebar.caption("Hệ thống Quản lý Vận hành")
-
-menu = st.sidebar.radio(
-    "Danh mục quản lý:",
-    [
-        "📊 Tổng quan & KPI",
-        "🗺️ Sơ đồ phòng",
-        "🗝️ Nhận / Trả phòng",
-        "🧹 Buồng phòng",
-        "📈 Báo cáo doanh thu"
-    ]
-)
-
-st.sidebar.markdown("---")
-st.sidebar.caption("Phiên bản 2.0 - Tối ưu hoá hệ thống")
-
-
-# ==========================================
-# 3. MÀN HÌNH: TỔNG QUAN & KPI
-# ==========================================
-if menu == "📊 Tổng quan & KPI":
-    st.title("📊 Tổng Quan Vận Hành Khách Sạn")
-    
-    df_rooms = st.session_state["rooms"]
-    
-    total_rooms = len(df_rooms)
-    occupied_rooms = len(df_rooms[df_rooms["status"] == "Đang có khách"])
-    reserved_rooms = len(df_rooms[df_rooms["status"] == "Đã đặt"])
-    available_rooms = len(df_rooms[df_rooms["status"] == "Trống"])
-    maintenance_rooms = len(df_rooms[df_rooms["status"] == "Bảo trì"])
-    
-    occupancy_rate = (occupied_rooms / total_rooms) * 100 if total_rooms > 0 else 0
-    
-    # Chỉ số KPI
-    col1, col2, col3, col4, col5 = st.columns(5)
-    col1.metric("Tổng số phòng", total_rooms)
-    col2.metric("Đang có khách", occupied_rooms, f"{occupancy_rate:.1f}% Đầy")
-    col3.metric("Phòng đã đặt", reserved_rooms)
-    col4.metric("Phòng sẵn sàng", available_rooms)
-    col5.metric("Đang bảo trì", maintenance_rooms)
-    
-    st.markdown("---")
-    
-    col_chart1, col_chart2 = st.columns(2)
-    
-    with col_chart1:
-        st.subheader("📌 Thống kê trạng thái phòng")
-        status_df = df_rooms["status"].value_counts().reset_index()
-        status_df.columns = ["Trạng thái", "Số lượng"]
-        st.bar_chart(status_df.set_index("Trạng thái"))
+        # -------------------------------------------------------------
+        # 1. CÂU LỆNH KHỞI TẠO VÀ TẢI HÌNH ẢNH VT.JPG TRANG CHỦ
+        # -------------------------------------------------------------
+        self.image_filename = "VT.jpg"
         
-    with col_chart2:
-        st.subheader("🧹 Thống kê tình trạng vệ sinh")
-        hk_df = df_rooms["housekeeping"].value_counts().reset_index()
-        hk_df.columns = ["Vệ sinh", "Số lượng"]
-        st.bar_chart(hk_df.set_index("Vệ sinh"))
-
-
-# ==========================================
-# 4. MÀN HÌNH: SƠ ĐỒ PHÒNG TRỰC QUAN
-# ==========================================
-elif menu == "🗺️ Sơ đồ phòng":
-    st.title("🗺️ Sơ Đồ Phòng Khách Sạn")
-    
-    df_rooms = st.session_state["rooms"]
-    
-    # Bộ lọc
-    col_f1, col_f2 = st.columns(2)
-    with col_f1:
-        floor_filter = st.multiselect("Chọn Tầng:", df_rooms["floor"].unique(), default=df_rooms["floor"].unique())
-    with col_f2:
-        status_filter = st.multiselect("Chọn Trạng thái:", df_rooms["status"].unique(), default=df_rooms["status"].unique())
+        # Ảnh banner lớn cho trang chủ (1050x180 px)
+        self.home_banner_photo = self.load_room_image(self.image_filename, size=(1050, 180))
         
-    filtered_rooms = df_rooms[(df_rooms["floor"].isin(floor_filter)) & (df_rooms["status"].isin(status_filter))]
-    
-    status_bg = {
-        "Trống": "#d4edda",
-        "Đang có khách": "#f8d7da",
-        "Đã đặt": "#fff3cd",
-        "Bảo trì": "#e2e3e5"
-    }
-    
-    for floor in sorted(filtered_rooms["floor"].unique()):
-        st.subheader(f"🏢 {floor}")
-        rooms_in_floor = filtered_rooms[filtered_rooms["floor"] == floor]
-        
-        cols = st.columns(4)
-        for idx, (_, room) in enumerate(rooms_in_floor.iterrows()):
-            with cols[idx % 4]:
-                bg_color = status_bg.get(room['status'], '#ffffff')
-                st.markdown(
-                    f"""
-                    <div style="
-                        border: 1px solid #ccc; 
-                        border-radius: 8px; 
-                        padding: 12px; 
-                        margin-bottom: 12px;
-                        background-color: {bg_color};">
-                        <h3 style="margin:0; color:#333;">Phòng {room['room_no']}</h3>
-                        <p style="margin:4px 0;"><b>Loại:</b> {room['type']}</p>
-                        <p style="margin:4px 0;"><b>Giá:</b> {room['price']:,} VNĐ</p>
-                        <p style="margin:4px 0;"><b>Trạng thái:</b> {room['status']}</p>
-                        <p style="margin:4px 0;"><b>Vệ sinh:</b> {room['housekeeping']}</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
+        # Ảnh nhỏ cho khung chi tiết phòng (250x160 px)
+        self.room_photo = self.load_room_image(self.image_filename, size=(250, 160))
 
+        # Khởi tạo dữ liệu danh sách phòng mẫu
+        self.rooms = {
+            "101": {"type": "Standard", "price": 500000, "status": "Trống", "guest": "", "phone": "", "checkin": ""},
+            "102": {"type": "Standard", "price": 500000, "status": "Trống", "guest": "", "phone": "", "checkin": ""},
+            "201": {"type": "Superior", "price": 750000, "status": "Trống", "guest": "", "phone": "", "checkin": ""},
+            "202": {"type": "Superior", "price": 750000, "status": "Đang ở", "guest": "Nguyễn Văn A", "phone": "0901234567", "checkin": "2026-09-28 08:00"},
+            "301": {"type": "Deluxe", "price": 1000000, "status": "Trống", "guest": "", "phone": "", "checkin": ""},
+            "302": {"type": "VIP Suite", "price": 1800000, "status": "Trống", "guest": "", "phone": "", "checkin": ""}
+        }
 
-# ==========================================
-# 5. MÀN HÌNH: CHECK-IN / CHECK-OUT
-# ==========================================
-elif menu == "🗝️ Nhận / Trả phòng":
-    st.title("🗝️ Quản Lý Nhận & Trả Phòng")
-    
-    tab_checkin, tab_checkout, tab_history = st.tabs(["📥 Check-in", "📤 Check-out", "📋 Danh sách lưu trú"])
-    
-    df_rooms = st.session_state["rooms"]
-    df_bookings = st.session_state["bookings"]
-    
-    # --- CHECK-IN ---
-    with tab_checkin:
-        st.subheader("Nhận phòng mới")
-        available_rooms_df = df_rooms[(df_rooms["status"] == "Trống") & (df_rooms["housekeeping"] == "Sạch")]
-        
-        if available_rooms_df.empty:
-            st.warning("⚠️ Không có phòng trống sẵn sàng. Lễ tân cần kiểm tra lại sơ đồ phòng hoặc lịch vệ sinh.")
+        self.setup_ui()
+
+    # -------------------------------------------------------------
+    # 2. CÂU LỆNH HÀM XỬ LÝ TẢI VÀ TỐI ƯU KÍCH THƯỚC ẢNH VT.JPG
+    # -------------------------------------------------------------
+    def load_room_image(self, image_path, size=(250, 160)):
+        """Tải ảnh VT.jpg và resize theo kích thước mong muốn"""
+        if os.path.exists(image_path):
+            try:
+                img = Image.open(image_path)
+                img = img.resize(size, Image.Resampling.LANCZOS)
+                return ImageTk.PhotoImage(img)
+            except Exception as e:
+                print(f"Lỗi khi mở file ảnh {image_path}: {e}")
+                return None
         else:
-            with st.form("checkin_form"):
-                col1, col2 = st.columns(2)
-                with col1:
-                    room_selected = st.selectbox("Chọn Phòng Trống:", available_rooms_df["room_no"].tolist())
-                    guest_name = st.text_input("Tên Khách Hàng:")
-                    phone = st.text_input("Số Điện Thoại:")
-                with col2:
-                    checkin_date = st.date_input("Ngày Check-in:", date.today())
-                    checkout_date = st.date_input("Ngày Check-out Dự kiến:", date.today())
-                    deposit = st.number_input("Tiền Cọc (VNĐ):", min_value=0, step=100000, value=200000)
-                    
-                btn_checkin = st.form_submit_button("✅ Xác Nhận Check-In")
-                
-                if btn_checkin:
-                    if not guest_name or not phone:
-                        st.error("Vui lòng điền tên và số điện thoại khách hàng.")
-                    elif checkout_date <= checkin_date:
-                        st.error("Ngày trả phòng phải sau ngày nhận phòng.")
-                    else:
-                        nights = (checkout_date - checkin_date).days
-                        room_price = df_rooms[df_rooms["room_no"] == room_selected]["price"].values[0]
-                        total_price = nights * room_price
-                        
-                        new_booking = {
-                            "id": f"BK-{len(df_bookings) + 1001}",
-                            "room_no": room_selected,
-                            "guest_name": guest_name,
-                            "phone": phone,
-                            "checkin": checkin_date,
-                            "checkout": checkout_date,
-                            "service_fee": 0,
-                            "deposit": deposit,
-                            "total": total_price,
-                            "status": "Đang ở"
-                        }
-                        
-                        st.session_state["bookings"] = pd.concat([df_bookings, pd.DataFrame([new_booking])], ignore_index=True)
-                        st.session_state["rooms"].loc[st.session_state["rooms"]["room_no"] == room_selected, "status"] = "Đang có khách"
-                        st.session_state["rooms"].loc[st.session_state["rooms"]["room_no"] == room_selected, "housekeeping"] = "Đang ở"
-                        
-                        st.success(f"Khách {guest_name} nhận phòng {room_selected} thành công!")
-                        st.rerun()
+            print(f"Cảnh báo: Không tìm thấy file '{image_path}' trong thư mục chạy code.")
+            return None
 
-    # --- CHECK-OUT ---
-    with tab_checkout:
-        st.subheader("Thanh toán & Trả phòng")
-        active_bookings = df_bookings[df_bookings["status"] == "Đang ở"]
-        
-        if active_bookings.empty:
-            st.info("Hiện không có phòng nào cần trả.")
+    def setup_ui(self):
+        # Thanh tiêu đề chính
+        header_frame = tk.Frame(self.root, bg="#2C3E50", height=50)
+        header_frame.pack(fill=tk.X)
+        header_label = tk.Label(
+            header_frame, 
+            text="HỆ THỐNG QUẢN LÝ KHÁCH SẠN", 
+            font=("Arial", 16, "bold"), 
+            fg="white", 
+            bg="#2C3E50"
+        )
+        header_label.pack(pady=10)
+
+        # -------------------------------------------------------------
+        # 3. CÂU LỆNH HIỂN THỊ BANNER ẢNH VT.JPG TRÊN ĐẦU TRANG CHỦ
+        # -------------------------------------------------------------
+        if self.home_banner_photo:
+            banner_label = tk.Label(self.root, image=self.home_banner_photo, bg="#2C3E50")
+            banner_label.pack(fill=tk.X, padx=10, pady=(10, 0))
         else:
-            selected_booking_id = st.selectbox(
-                "Chọn lượt trả phòng:",
-                active_bookings["id"].tolist(),
-                format_func=lambda x: f"Mã {x} - Phòng {active_bookings[active_bookings['id']==x]['room_no'].values[0]} ({active_bookings[active_bookings['id']==x]['guest_name'].values[0]})"
+            banner_label = tk.Label(
+                self.root, 
+                text="[ TRANG CHỦ KHÁCH SẠN - FILE VT.JPG CHƯA ĐƯỢC TẢI ]", 
+                font=("Arial", 12, "bold"), 
+                bg="#34495E", 
+                fg="white", 
+                height=4
             )
-            
-            booking_info = active_bookings[active_bookings["id"] == selected_booking_id].iloc[0]
-            room_info = df_rooms[df_rooms["room_no"] == booking_info["room_no"]].iloc[0]
-            
-            nights = max((booking_info["checkout"] - booking_info["checkin"]).days, 1)
-            room_charge = nights * room_info["price"]
-            
-            st.markdown("---")
-            col_b1, col_b2 = st.columns(2)
-            with col_b1:
-                st.write(f"**Khách hàng:** {booking_info['guest_name']}")
-                st.write(f"**SĐT:** {booking_info['phone']}")
-                st.write(f"**Số phòng:** {booking_info['room_no']}")
-                st.write(f"**Thời gian:** {booking_info['checkin']} ➔ {booking_info['checkout']} ({nights} đêm)")
-            with col_b2:
-                service_fee = st.number_input("Phụ thu dịch vụ (VNĐ):", min_value=0, value=int(booking_info["service_fee"]), step=50000)
-                deposit = booking_info["deposit"]
-                grand_total = room_charge + service_fee
-                final_pay = grand_total - deposit
-                
-                st.write(f"**Tiền phòng:** {room_charge:,} VNĐ")
-                st.write(f"**Đã cọc:** -{deposit:,} VNĐ")
-                st.markdown(f"### **Thanh toán còn lại:** :green[{final_pay:,} VNĐ]")
-                
-            if st.button("🔔 Hoàn Tất Trả Phòng"):
-                st.session_state["bookings"].loc[st.session_state["bookings"]["id"] == selected_booking_id, "status"] = "Đã trả phòng"
-                st.session_state["bookings"].loc[st.session_state["bookings"]["id"] == selected_booking_id, "service_fee"] = service_fee
-                st.session_state["bookings"].loc[st.session_state["bookings"]["id"] == selected_booking_id, "total"] = grand_total
-                
-                st.session_state["rooms"].loc[st.session_state["rooms"]["room_no"] == booking_info["room_no"], "status"] = "Trống"
-                st.session_state["rooms"].loc[st.session_state["rooms"]["room_no"] == booking_info["room_no"], "housekeeping"] = "Cần dọn"
-                
-                today_str = date.today().strftime("%Y-%m-%d")
-                df_rev = st.session_state["revenue_history"]
-                if today_str in df_rev["Ngày"].values:
-                    st.session_state["revenue_history"].loc[df_rev["Ngày"] == today_str, "Doanh thu"] += grand_total
-                else:
-                    new_rev = pd.DataFrame([{"Ngày": today_str, "Doanh thu": grand_total}])
-                    st.session_state["revenue_history"] = pd.concat([df_rev, new_rev], ignore_index=True)
-                    
-                st.success("Trả phòng thành công!")
-                st.rerun()
+            banner_label.pack(fill=tk.X, padx=10, pady=(10, 0))
 
-    # --- DANH SÁCH LƯU TRÚ ---
-    with tab_history:
-        st.subheader("📋 Toàn bộ dữ liệu đặt phòng")
-        st.dataframe(st.session_state["bookings"], use_container_width=True)
+        # Các Tab giao diện chính
+        notebook = ttk.Notebook(self.root)
+        notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
+        # Tab 1: Sơ đồ phòng
+        tab_map = ttk.Frame(notebook)
+        notebook.add(tab_map, text=" Sơ Đồ Phòng ")
+        self.setup_room_map_tab(tab_map)
 
-# ==========================================
-# 6. MÀN HÌNH: BUỒNG PHÒNG
-# ==========================================
-elif menu == "🧹 Buồng phòng":
-    st.title("🧹 Quản Lý Dọn Dẹp Buồng Phòng")
-    
-    df_rooms = st.session_state["rooms"]
-    
-    edited_df = st.data_editor(
-        df_rooms[["room_no", "floor", "type", "status", "housekeeping"]],
-        column_config={
-            "room_no": st.column_config.TextColumn("Số phòng", disabled=True),
-            "floor": st.column_config.TextColumn("Tầng", disabled=True),
-            "type": st.column_config.TextColumn("Loại phòng", disabled=True),
-            "status": st.column_config.TextColumn("Trạng thái phòng", disabled=True),
-            "housekeeping": st.column_config.SelectboxColumn(
-                "Tình trạng vệ sinh",
-                options=["Sạch", "Cần dọn", "Đang ở"],
-                required=True
+        # Tab 2: Quản lý Check-in / Check-out
+        tab_checkin = ttk.Frame(notebook)
+        notebook.add(tab_checkin, text=" Quản Lý Check-in / Check-out ")
+        self.setup_checkin_tab(tab_checkin)
+
+    def setup_room_map_tab(self, parent):
+        main_frame = tk.Frame(parent)
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # Cột bên trái: Các nút chọn phòng
+        rooms_frame = tk.LabelFrame(main_frame, text="Danh Sách Phòng", font=("Arial", 12, "bold"), padx=10, pady=10)
+        rooms_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.room_buttons = {}
+        row, col = 0, 0
+        for room_id, info in self.rooms.items():
+            btn_color = "#2ECC71" if info["status"] == "Trống" else "#E74C3C"
+            btn_text = f"Phòng {room_id}\n({info['type']})\n{info['status']}"
+
+            btn = tk.Button(
+                rooms_frame, text=btn_text, font=("Arial", 11, "bold"),
+                bg=btn_color, fg="white", width=15, height=3,
+                command=lambda r=room_id: self.show_room_details(r)
             )
-        },
-        hide_index=True,
-        use_container_width=True
-    )
-    
-    if st.button("💾 Lưu Trạng Thái Vệ Sinh"):
-        st.session_state["rooms"]["housekeeping"] = edited_df["housekeeping"]
-        st.success("Cập nhật thành công!")
-        st.rerun()
+            btn.grid(row=row, column=col, padx=10, pady=10)
 
+            self.room_buttons[room_id] = btn
 
-# ==========================================
-# 7. MÀN HÌNH: BÁO CÁO DOANH THU
-# ==========================================
-elif menu == "📈 Báo cáo doanh thu":
-    st.title("📈 Báo Cáo Doanh Thu")
-    
-    df_rev = st.session_state["revenue_history"]
-    
-    total_rev = df_rev["Doanh thu"].sum()
-    st.metric("Tổng Doanh Thu Lấy Được", f"{total_rev:,} VNĐ")
-    
-    st.markdown("---")
-    st.subheader("📉 Biểu đồ xu hướng doanh thu")
-    
-    # Biểu đồ dòng nguyên bản Streamlit
-    chart_data = df_rev.set_index("Ngày")
-    st.line_chart(chart_data)
-    
-    st.subheader("📋 Chi tiết nhật ký")
-    st.dataframe(df_rev, use_container_width=True)
+            col += 1
+            if col > 2:
+                col = 0
+                row += 1
+
+        # Cột bên phải: Xem thông tin chi tiết & Ảnh minh họa
+        details_frame = tk.LabelFrame(main_frame, text="Thông Tin Chi Tiết", font=("Arial", 12, "bold"), padx=15, pady=15)
+        details_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=(10, 0))
+
+        # Khung hiển thị ảnh minh họaVT.jpg
+        self.lbl_image = tk.Label(details_frame, text="[Ảnh Phòng]", bg="#BDC3C7", width=30, height=8)
+        self.lbl_image.pack(pady=(0, 15))
+        if self.room_photo:
+            self.lbl_image.config(image=self.room_photo, text="", width=250, height=160)
+
+        self.lbl_detail_room = tk.Label(details_frame, text="Chọn phòng để xem chi tiết", font=("Arial", 12, "bold"))
+        self.lbl_detail_room.pack(anchor="w", pady=5)
+
+        self.lbl_detail_type = tk.Label(details_frame, text="Loại phòng: -", font=("Arial", 11))
+        self.lbl_detail_type.pack(anchor="w", pady=2)
+
+        self.lbl_detail_price = tk.Label(details_frame, text="Giá: -", font=("Arial", 11))
+        self.lbl_detail_price.pack(anchor="w", pady=2)
+
+        self.lbl_detail_status = tk.Label(details_frame, text="Trạng thái: -", font=("Arial", 11))
+        self.lbl_detail_status.pack(anchor="w", pady=2)
+
+        self.lbl_detail_guest = tk.Label(details_frame, text="Khách hàng: -", font=("Arial", 11))
+        self.lbl_detail_guest.pack(anchor="w", pady=2)
+
+        self.lbl_detail_phone = tk.Label(details_frame, text="Số điện thoại: -", font=("Arial", 11))
+        self.lbl_detail_phone.pack(anchor="w", pady=2)
+
+    def show_room_details(self, room_id):
+        info = self.rooms[room_id]
+        self.lbl_detail_room.config(text=f"Phòng: {room_id}")
+        self.lbl_detail_type.config(text=f"Loại phòng: {info['type']}")
+        self.lbl_detail_price.config(text=f"Giá: {info['price']:,} VNĐ/đêm")
+        self.lbl_detail_status.config(text=f"Trạng thái: {info['status']}")
+        self.lbl_detail_guest.config(text=f"Khách hàng: {info['guest'] if info['guest'] else 'N/A'}")
+        self.lbl_detail_phone.config(text=f"Số điện thoại: {info['phone'] if info['phone'] else 'N/A'}")
+
+    def setup_checkin_tab(self, parent):
+        frame = tk.Frame(parent, padx=20, pady=20)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        form_frame = tk.LabelFrame(frame, text="Thao Tác Nhận / Trả Phòng", font=("Arial", 12, "bold"), padx=15, pady=15)
+        form_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
+
+        tk.Label(form_frame, text="Chọn Phòng:", font=("Arial", 11)).grid(row=0, column=0, sticky="w", pady=5)
+        self.cb_rooms = ttk.Combobox(form_frame, values=list(self.rooms.keys()), font=("Arial", 11), state="readonly")
+        self.cb_rooms.grid(row=0, column=1, sticky="ew", pady=5)
+        if self.rooms:
+            self.cb_rooms.current(0)
+
+        tk.Label(form_frame, text="Tên Khách Hàng:", font=("Arial", 11)).grid(row=1, column=0, sticky="w", pady=5)
+        self.entry_guest = tk.Entry(form_frame, font=("Arial", 11))
+        self.entry_guest.grid(row=1, column=1, sticky="ew", pady=5)
+
+        tk.Label(form_frame, text="Số Điện Thoại:", font=("Arial", 11)).grid(row=2, column=0, sticky="w", pady=5)
+        self.entry_phone = tk.Entry(form_frame, font=("Arial", 11))
+        self.entry_phone.grid(row=2, column=1, sticky="ew", pady=5)
+
+        btn_checkin = tk.Button(form_frame, text="Check-in (Nhận Phòng)", bg="#2ECC71", fg="white", font=("Arial", 11, "bold"), command=self.handle_checkin)
+        btn_checkin.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(15, 5))
+
+        btn_checkout = tk.Button(form_frame, text="Check-out (Trả Phòng)", bg="#E74C3C", fg="white", font=("Arial", 11, "bold"), command=self.handle_checkout)
+        btn_checkout.grid(row=4, column=0, columnspan=2, sticky="ew", pady=5)
+
+        form_frame.columnconfigure(1, weight=1)
+
+        # Hiển thị ảnh mẫu VT.jpg bên phải tab Check-in
+        img_preview_frame = tk.LabelFrame(frame, text="Hình Ảnh Minh Họa (VT.jpg)", font=("Arial", 12, "bold"), padx=15, pady=15)
+        img_preview_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+        lbl_tab2_img = tk.Label(img_preview_frame, text="[VT.jpg]", bg="#BDC3C7")
+        lbl_tab2_img.pack(fill=tk.BOTH, expand=True)
+        if self.room_photo:
+            lbl_tab2_img.config(image=self.room_photo, text="")
+
+    def handle_checkin(self):
+        room_id = self.cb_rooms.get()
+        guest = self.entry_guest.get().strip()
+        phone = self.entry_phone.get().strip()
+
+        if not room_id:
+            messagebox.showwarning("Cảnh báo", "Vui lòng chọn phòng!")
+            return
+
+        if self.rooms[room_id]["status"] == "Đang ở":
+            messagebox.showerror("Lỗi", f"Phòng {room_id} hiện đang có khách ở!")
+            return
+
+        if not guest or not phone:
+            messagebox.showwarning("Cảnh báo", "Vui lòng nhập đầy đủ thông tin khách hàng!")
+            return
+
+        self.rooms[room_id]["status"] = "Đang ở"
+        self.rooms[room_id]["guest"] = guest
+        self.rooms[room_id]["phone"] = phone
+
+        self.room_buttons[room_id].config(bg="#E74C3C", text=f"Phòng {room_id}\n({self.rooms[room_id]['type']})\nĐang ở")
+        self.show_room_details(room_id)
+
+        self.entry_guest.delete(0, tk.END)
+        self.entry_phone.delete(0, tk.END)
+
+        messagebox.showinfo("Thành công", f"Đã check-in thành công cho phòng {room_id}!")
+
+    def handle_checkout(self):
+        room_id = self.cb_rooms.get()
+
+        if not room_id:
+            messagebox.showwarning("Cảnh báo", "Vui lòng chọn phòng!")
+            return
+
+        if self.rooms[room_id]["status"] == "Trống":
+            messagebox.showerror("Lỗi", f"Phòng {room_id} hiện đang trống!")
+            return
+
+        guest_name = self.rooms[room_id]["guest"]
+        self.rooms[room_id]["status"] = "Trống"
+        self.rooms[room_id]["guest"] = ""
+        self.rooms[room_id]["phone"] = ""
+
+        self.room_buttons[room_id].config(bg="#2ECC71", text=f"Phòng {room_id}\n({self.rooms[room_id]['type']})\nTrống")
+        self.show_room_details(room_id)
+
+        messagebox.showinfo("Thành công", f"Đã trả phòng {room_id} (Khách hàng: {guest_name}) thành công!")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = HotelManagementApp(root)
+    root.mainloop()
