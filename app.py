@@ -14,14 +14,14 @@ st.set_page_config(
 
 # Danh sách phòng mặc định
 DEFAULT_ROOMS = [
-    {"room_no": "101", "floor": "Tầng 1", "type": "Standard", "price": 500000/"đêm", "status": "Trống", "housekeeping": "Sạch"},
-    {"room_no": "102", "floor": "Tầng 1", "type": "Standard", "price": 500000/"đêm", "status": "Đang có khách", "housekeeping": "Đang ở"},
-    {"room_no": "103", "floor": "Tầng 1", "type": "Superior", "price": 750000/"đêm", "status": "Trống", "housekeeping": "Cần dọn"},
-    {"room_no": "201", "floor": "Tầng 2", "type": "Superior", "price": 750000/"đêm", "status": "Trống", "housekeeping": "Sạch"},
-    {"room_no": "202", "floor": "Tầng 2", "type": "Deluxe", "price": 1200000/"đêm", "status": "Đang có khách", "housekeeping": "Đang ở"},
-    {"room_no": "203", "floor": "Tầng 2", "type": "Deluxe", "price": 1200000/"đêm", "status": "Bảo trì", "housekeeping": "Cần dọn"},
-    {"room_no": "301", "floor": "Tầng 3", "type": "VIP Suite", "price": 2000000/"đêm", "status": "Trống", "housekeeping": "Sạch"},
-    {"room_no": "302", "floor": "Tầng 3", "type": "VIP Suite", "price": 2000000/"đêm", "status": "Đã đặt", "housekeeping": "Sạch"},
+    {"room_no": "101", "floor": "Tầng 1", "type": "Standard", "price": 500000, "status": "Trống", "housekeeping": "Sạch"},
+    {"room_no": "102", "floor": "Tầng 1", "type": "Standard", "price": 500000, "status": "Đang có khách", "housekeeping": "Đang ở"},
+    {"room_no": "103", "floor": "Tầng 1", "type": "Superior", "price": 750000, "status": "Trống", "housekeeping": "Cần dọn"},
+    {"room_no": "201", "floor": "Tầng 2", "type": "Superior", "price": 750000, "status": "Trống", "housekeeping": "Sạch"},
+    {"room_no": "202", "floor": "Tầng 2", "type": "Deluxe", "price": 1200000, "status": "Đang có khách", "housekeeping": "Đang ở"},
+    {"room_no": "203", "floor": "Tầng 2", "type": "Deluxe", "price": 1200000, "status": "Bảo trì", "housekeeping": "Cần dọn"},
+    {"room_no": "301", "floor": "Tầng 3", "type": "VIP Suite", "price": 2000000, "status": "Trống", "housekeeping": "Sạch"},
+    {"room_no": "302", "floor": "Tầng 3", "type": "VIP Suite", "price": 2000000, "status": "Đã đặt", "housekeeping": "Sạch"},
 ]
 
 # Đặt phòng mẫu
